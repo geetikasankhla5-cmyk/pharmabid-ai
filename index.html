@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-50 text-slate-900 antialiased">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PharmaBid AI | Universal Pharmaceutical Tender Intelligence Platform</title>
+  <meta name="description" content="AI-Powered Universal Pharmaceutical Tender Intelligence & Bidding Decision Platform for Life Sciences Enterprises" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              200: '#a7f3d0',
+              300: '#6ee7b7',
+              400: '#34d399',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              800: '#065f46',
+              900: '#064e3b',
+            },
+            accent: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    ::-webkit-scrollbar { width: 7px; height: 7px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 6px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+    .white-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+      border-radius: 1rem;
+    }
+    .white-card:hover {
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    }
+    .top-nav-blur {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .tab-active {
+      background: #ffffff !important;
+      color: #047857 !important;
+      font-weight: 700 !important;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.06) !important;
+      border-color: #cbd5e1 !important;
+    }
+    .badge-pulse {
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: .4; }
+    }
+    @media print {
+      body * { visibility: hidden; }
+      #printable-report-section, #printable-report-section * { visibility: visible; }
+      #printable-report-section { position: absolute; left: 0; top: 0; width: 100%; }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body class="h-full flex flex-col font-sans selection:bg-brand-500 selection:text-white bg-slate-50 text-slate-800">
+
+  <!-- TOP ENTERPRISE HEADER -->
+  <header class="top-nav-blur sticky top-0 z-40 px-4 sm:px-8 py-3.5 flex items-center justify-between shadow-xs">
+    <div class="flex items-center gap-3.5">
+      <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-brand-600 to-accent-600 flex items-center justify-center shadow-md shadow-brand-500/20">
+        <i data-lucide="crosshair" class="w-5 h-5 text-white"></i>
+      </div>
+      <div>
+        <div class="flex items-center gap-2.5">
+          <h1 class="font-extrabold text-xl text-slate-900 tracking-tight">PharmaBid AI</h1>
+          <span class="text-[11px] uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">Enterprise Suite</span>
+          <span class="hidden md:inline text-[11px] uppercase font-semibold px-2.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200" id="header-demo-tag">DEMO DATA — NOT REAL-TIME</span>
+        </div>
+        <p class="text-xs text-slate-500 font-medium">
+          Universal Pharmaceutical Tender Intelligence & Bidding Decision Engine
+        </p>
+      </div>
+    </div>
+
+    <!-- Active Profile Quick-Context & Switcher -->
+    <div class="flex items-center gap-3">
+      <!-- Scenario Selector Dropdown -->
+      <div class="hidden sm:flex items-center gap-2 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs">
+        <span class="text-slate-500 pl-2 font-medium">Preset:</span>
+        <select id="scenario-selector" onchange="switchDemoScenario(this.value)" class="bg-white text-slate-800 font-semibold px-2.5 py-1.5 rounded-lg border border-slate-200 outline-none cursor-pointer hover:bg-slate-50 shadow-2xs">
+          <option value="cardiovascular">Cardiovascular / Hypertension (India - INR ₹)</option>
+          <option value="oncology">Specialty Oncology / Biosimilar (UK NHS - GBP £)</option>
+          <option value="diabetes">Diabetes / GLP-1 Analogue (Brazil - BRL R$)</option>
+          <option value="custom">+ Custom Company Profile / Reset</option>
+        </select>
+      </div>
+
+      <!-- Setup Company / Profile Button -->
+      <button onclick="openCompanyModal()" class="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 hover:text-slate-900 font-semibold text-xs transition shadow-2xs">
+        <i data-lucide="settings-2" class="w-4 h-4 text-emerald-600"></i>
+        <span>Configure Profile</span>
+      </button>
+
+      <!-- Print / Export Briefing Button -->
+      <button onclick="window.print()" class="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs transition shadow-sm">
+        <i data-lucide="printer" class="w-4 h-4"></i>
+        <span class="hidden sm:inline">Executive Dossier</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- SECONDARY BANNER: CURRENT TENDER OVERVIEW -->
+  <div class="bg-white border-b border-slate-200 px-4 sm:px-8 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs">
+    <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-slate-600">
+      <div class="flex items-center gap-1.5">
+        <i data-lucide="building" class="w-3.5 h-3.5 text-emerald-600"></i>
+        <strong class="text-slate-900 font-bold" id="hdr-company-name">Global Biopharma</strong>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <i data-lucide="pill" class="w-3.5 h-3.5 text-blue-600"></i>
+        <span class="text-slate-500">Product:</span>
+        <strong class="text-slate-900 font-semibold" id="hdr-product-name">CardioShield XR</strong>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <i data-lucide="file-text" class="w-3.5 h-3.5 text-amber-600"></i>
+        <span class="text-slate-500">Tender ID:</span>
+        <span class="font-mono font-bold text-slate-800" id="hdr-tender-id">MOH-CVD-2026-Q1</span>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <i data-lucide="globe" class="w-3.5 h-3.5 text-slate-400"></i>
+        <span class="text-slate-500">Market:</span>
+        <span class="font-semibold text-slate-800" id="hdr-country">India</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="h-2 w-2 rounded-full bg-emerald-500 badge-pulse"></span>
+      <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Active Decision Session</span>
+    </div>
+  </div>
+
+  <!-- NAVIGATION TABS -->
+  <nav class="px-4 sm:px-8 pt-4 pb-2 bg-slate-50 border-b border-slate-200/80 sticky top-[69px] z-30">
+    <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar bg-slate-200/70 p-1.5 rounded-2xl max-w-fit border border-slate-300/80">
+      <button onclick="switchTab('tab-dashboard')" id="btn-tab-dashboard" class="tab-btn tab-active px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition">
+        <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+        <span>Executive Cockpit</span>
+      </button>
+      <button onclick="switchTab('tab-analyzer')" id="btn-tab-analyzer" class="tab-btn text-slate-600 hover:text-slate-900 hover:bg-white/60 px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition">
+        <i data-lucide="file-search" class="w-4 h-4"></i>
+        <span>Document AI Extractor</span>
+      </button>
+      <button onclick="switchTab('tab-optimizer')" id="btn-tab-optimizer" class="tab-btn text-slate-600 hover:text-slate-900 hover:bg-white/60 px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition">
+        <i data-lucide="sliders" class="w-4 h-4"></i>
+        <span>Bid Optimizer & P(Win)</span>
+      </button>
+      <button onclick="switchTab('tab-competitors')" id="btn-tab-competitors" class="tab-btn text-slate-600 hover:text-slate-900 hover:bg-white/60 px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition">
+        <i data-lucide="users" class="w-4 h-4"></i>
+        <span>Competitor Intel</span>
+      </button>
+      <button onclick="switchTab('tab-risk')" id="btn-tab-risk" class="tab-btn text-slate-600 hover:text-slate-900 hover:bg-white/60 px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition">
+        <i data-lucide="shield-alert" class="w-4 h-4"></i>
+        <span>8-Vector Risk Matrix</span>
+      </button>
+      <button onclick="switchTab('tab-scenarios')" id="btn-tab-scenarios" class="tab-btn text-slate-600 hover:text-slate-900 hover:bg-white/60 px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition">
+        <i data-lucide="table" class="w-4 h-4"></i>
+        <span>Scenario Frontier</span>
+      </button>
+      <button onclick="switchTab('tab-roi')" id="btn-tab-roi" class="tab-btn text-slate-600 hover:text-slate-900 hover:bg-white/60 px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition">
+        <i data-lucide="calculator" class="w-4 h-4"></i>
+        <span>Commercial ROI</span>
+      </button>
+      <button onclick="switchTab('tab-negotiation')" id="btn-tab-negotiation" class="tab-btn text-slate-600 hover:text-slate-900 hover:bg-white/60 px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition">
+        <i data-lucide="handshake" class="w-4 h-4"></i>
+        <span>Negotiation War Room</span>
+      </button>
+      <button onclick="switchTab('tab-report')" id="btn-tab-report" class="tab-btn text-slate-600 hover:text-slate-900 hover:bg-white/60 px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition">
+        <i data-lucide="file-check" class="w-4 h-4"></i>
+        <span>Audit Dossier</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- MAIN SCROLLABLE CONTENT AREA -->
+  <main class="flex-1 overflow-y-auto px-4 sm:px-8 py-6 max-w-7xl mx-auto w-full space-y-6">
+
+    <!-- ========================================== -->
+    <!-- TAB 1: EXECUTIVE DECISION COCKPIT -->
+    <!-- ========================================== -->
+    <section id="tab-dashboard" class="tab-content space-y-6">
+      
+      <!-- Top Overview Banner -->
+      <div class="white-card p-6 bg-gradient-to-r from-emerald-50/50 via-white to-blue-50/50 border-slate-200">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div class="space-y-1.5">
+            <div class="flex items-center gap-2.5">
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300" id="dash-ta-badge">Cardiovascular</span>
+              <span class="text-xs text-slate-500 font-medium">Tender Procurement Portal</span>
+            </div>
+            <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight" id="dash-tender-name">National Health Service Central Procurement</h2>
+            <p class="text-sm text-slate-600">
+              Molecule: <span class="font-semibold text-slate-800" id="dash-molecule">Amlodipine + Telmisartan 5/80mg</span> &bull; 
+              Brand: <strong class="text-slate-900" id="dash-product-brand">CardioShield XR</strong> &bull; 
+              Target Batch: <strong class="text-slate-900 font-mono" id="dash-volume">2,500,000 units</strong>
+            </p>
+          </div>
+          <div class="flex items-center gap-3 bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs">
+            <div>
+              <span class="text-[11px] text-slate-500 block font-medium">Submission Cutoff</span>
+              <span class="text-sm font-bold text-slate-900 font-mono" id="dash-deadline">2026-11-15</span>
+            </div>
+            <div class="h-8 w-px bg-slate-200"></div>
+            <button onclick="switchTab('tab-optimizer')" class="px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-xs">
+              <span>Adjust Bid</span>
+              <i data-lucide="chevron-right" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4 High-Impact Executive Metric Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        
+        <!-- Metric 1: Recommended Bid Price -->
+        <div class="white-card p-6 border-l-4 border-l-emerald-500">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Optimal Bid Price</span>
+            <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
+              <i data-lucide="tag" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div class="mt-3">
+            <div class="text-3xl font-extrabold text-slate-900 font-mono tracking-tight" id="dash-rec-price">₹4.40</div>
+            <p class="text-xs text-slate-500 mt-1.5 flex items-center gap-1.5">
+              <span>Floor / Break-even:</span>
+              <span class="font-mono font-bold text-slate-700" id="dash-min-price">₹2.90</span>
+            </p>
+          </div>
+        </div>
+
+        <!-- Metric 2: Win Probability -->
+        <div class="white-card p-6 border-l-4 border-l-blue-500">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Win Probability P(Win)</span>
+            <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
+              <i data-lucide="trending-up" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div class="mt-3">
+            <div class="text-3xl font-extrabold text-blue-600 font-mono tracking-tight" id="dash-win-prob">68.5%</div>
+            <p class="text-xs text-slate-500 mt-1.5 flex items-center gap-1.5">
+              <span id="dash-win-rating" class="font-semibold text-blue-700">High Confidence</span>
+              <span class="text-slate-300">&bull;</span>
+              <span>Comp Avg:</span>
+              <span class="font-mono font-bold text-slate-700" id="dash-comp-avg-bid">₹4.25</span>
+            </p>
+          </div>
+        </div>
+
+        <!-- Metric 3: Expected Gross Profit -->
+        <div class="white-card p-6 border-l-4 border-l-amber-500">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Expected Return E[Profit]</span>
+            <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100">
+              <i data-lucide="banknote" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div class="mt-3">
+            <div class="text-3xl font-extrabold text-amber-600 font-mono tracking-tight" id="dash-exp-profit">₹2.57M</div>
+            <p class="text-xs text-slate-500 mt-1.5 flex items-center gap-1.5">
+              <span class="font-mono font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200" id="dash-margin-pct">34.1% Margin</span>
+              <span class="text-slate-300">&bull;</span>
+              <span class="font-mono text-slate-600" id="dash-exp-revenue">₹7.53M Exp Rev</span>
+            </p>
+          </div>
+        </div>
+
+        <!-- Metric 4: Executive Decision Verdict -->
+        <div class="white-card p-6 border-l-4 border-l-purple-500">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Decision Verdict</span>
+            <div class="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center border border-purple-100">
+              <i data-lucide="check-circle" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div class="mt-3">
+            <div class="text-2xl font-black uppercase tracking-wide text-emerald-600" id="dash-decision-verdict">GO</div>
+            <p class="text-xs text-slate-500 mt-1.5 flex items-center gap-1.5">
+              <span class="px-2 py-0.5 rounded font-bold font-mono text-[11px] bg-slate-100 text-slate-700 border border-slate-200" id="dash-risk-score-badge">Risk: 38/100</span>
+              <span class="text-emerald-700 font-semibold">Profitable & Viable</span>
+            </p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Decision Breakdown & Efficient Frontier Simulation Chart -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Left: Go / No-Go Decision Logic & Conditions -->
+        <div class="white-card p-6 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+            <h3 class="font-bold text-sm text-slate-900 flex items-center gap-2">
+              <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600"></i>
+              <span>Automated Decision Rationale</span>
+            </h3>
+            <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">Rule Engine</span>
+          </div>
+
+          <div class="space-y-3" id="dash-decision-factors-container">
+            <!-- Filled dynamically by engine -->
+          </div>
+
+          <div class="pt-3 border-t border-slate-200 space-y-2">
+            <span class="text-xs font-bold text-slate-800 uppercase tracking-wider block">Mandatory Deal Execution Conditions</span>
+            <div class="space-y-2" id="dash-decision-conditions-container">
+              <!-- Filled dynamically -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Efficient Frontier Curve (Chart.js) -->
+        <div class="lg:col-span-2 white-card p-6 flex flex-col justify-between space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-3">
+            <div>
+              <h3 class="font-bold text-sm text-slate-900 flex items-center gap-2">
+                <i data-lucide="activity" class="w-4 h-4 text-emerald-600"></i>
+                <span>Bid-Price Efficient Frontier & Win Probability Curve</span>
+              </h3>
+              <p class="text-xs text-slate-500 mt-0.5">Simulating expected gross return $\mathbb{E}[P] = P_{win}(price) \times (price - unitCost) \times Q$</p>
+            </div>
+            <div class="flex items-center gap-3 text-xs">
+              <span class="flex items-center gap-1.5 text-emerald-700 font-semibold"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Expected Return</span>
+              <span class="flex items-center gap-1.5 text-blue-600 font-semibold"><span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span> Win %</span>
+            </div>
+          </div>
+
+          <!-- Canvas Container -->
+          <div class="w-full h-72 sm:h-80 relative">
+            <canvas id="dashboardFrontierChart"></canvas>
+          </div>
+
+          <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div class="text-slate-600">
+              <strong class="text-slate-900 font-semibold">Algorithmic Recommendation:</strong> Optimal profit apex is reached at recommended bid price.
+            </div>
+            <button onclick="switchTab('tab-optimizer')" class="text-emerald-700 hover:text-emerald-800 font-bold flex items-center gap-1">
+              <span>Deep-dive Parameter Sensitivity</span>
+              <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 2: REAL DOCUMENT AI EXTRACTOR -->
+    <!-- ========================================== -->
+    <section id="tab-analyzer" class="tab-content hidden space-y-6">
+      
+      <div class="white-card p-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+          <div>
+            <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2.5">
+              <i data-lucide="file-search" class="w-5 h-5 text-emerald-600"></i>
+              <span>Tender Document AI Parser & Clause Analyzer</span>
+            </h2>
+            <p class="text-xs text-slate-500 mt-1">
+              Ingest tender RFPs (PDF, DOCX, XLSX). The platform extracts commercial clauses, penalty terms, and MEAT scoring weights.
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-mono font-bold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200" id="analyzer-clause-count">
+              4 Clauses Extracted
+            </span>
+          </div>
+        </div>
+
+        <!-- Upload Drag & Drop Area -->
+        <div class="mt-6 p-8 border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-2xl bg-slate-50/70 text-center space-y-3 transition cursor-pointer relative">
+          <input type="file" id="tender-file-input" onchange="handleFileUpload(event)" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full" accept=".pdf,.docx,.xlsx,.txt" />
+          <div class="w-12 h-12 mx-auto rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-200">
+            <i data-lucide="upload-cloud" class="w-6 h-6"></i>
+          </div>
+          <div class="space-y-1">
+            <p class="text-sm font-bold text-slate-800">Drop your official Tender RFP Specification Document here, or <span class="text-emerald-700 underline">browse files</span></p>
+            <p class="text-xs text-slate-500">Supports PDF, DOCX, Excel Procurement Schedules up to 50MB</p>
+          </div>
+          <div class="flex items-center justify-center gap-4 pt-2 text-[11px] text-slate-500">
+            <span class="flex items-center gap-1"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-600"></i> Automated OCR</span>
+            <span class="flex items-center gap-1"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-600"></i> MEAT Weight Parsing</span>
+            <span class="flex items-center gap-1"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-600"></i> LD Penalty Discovery</span>
+          </div>
+        </div>
+
+        <!-- Two Column Extracted Metadata -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+          
+          <!-- Extracted Evaluation Weights (MEAT) -->
+          <div class="white-card p-5 space-y-4 bg-slate-50/50">
+            <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2 border-b border-slate-200 pb-2">
+              <i data-lucide="scale" class="w-4 h-4 text-emerald-600"></i>
+              <span>Extracted MEAT Criteria Weights</span>
+            </h3>
+
+            <div class="space-y-3 text-xs" id="analyzer-weights-container">
+              <div class="flex justify-between items-center">
+                <span class="text-slate-600 font-medium">Price / Financial Bid:</span>
+                <span class="font-mono font-bold text-slate-900" id="weight-price-val">70%</span>
+              </div>
+              <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                <div class="bg-emerald-600 h-full rounded-full" style="width: 70%"></div>
+              </div>
+
+              <div class="flex justify-between items-center">
+                <span class="text-slate-600 font-medium">Technical Quality & Dossier:</span>
+                <span class="font-mono font-bold text-slate-900" id="weight-quality-val">15%</span>
+              </div>
+              <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                <div class="bg-blue-600 h-full rounded-full" style="width: 15%"></div>
+              </div>
+
+              <div class="flex justify-between items-center">
+                <span class="text-slate-600 font-medium">Supply Reliability & Lead Time:</span>
+                <span class="font-mono font-bold text-slate-900" id="weight-supply-val">10%</span>
+              </div>
+              <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                <div class="bg-amber-600 h-full rounded-full" style="width: 10%"></div>
+              </div>
+
+              <div class="flex justify-between items-center">
+                <span class="text-slate-600 font-medium">ESG / Sustainability:</span>
+                <span class="font-mono font-bold text-slate-900" id="weight-esg-val">5%</span>
+              </div>
+              <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                <div class="bg-purple-600 h-full rounded-full" style="width: 5%"></div>
+              </div>
+            </div>
+
+            <button onclick="syncExtractedWeightsToOptimizer()" class="w-full py-2 px-3 rounded-xl bg-white hover:bg-slate-100 border border-slate-300 text-slate-800 text-xs font-semibold transition flex items-center justify-center gap-1.5 shadow-2xs">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-emerald-600"></i>
+              <span>Sync Weights to Simulator</span>
+            </button>
+          </div>
+
+          <!-- Parsed Legal & Commercial Clauses List -->
+          <div class="lg:col-span-2 space-y-3">
+            <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+              <i data-lucide="shield-alert" class="w-4 h-4 text-amber-600"></i>
+              <span>Extracted Contractual Clauses & Risk Flags</span>
+            </h3>
+
+            <div class="space-y-3 max-h-96 overflow-y-auto pr-1" id="analyzer-clauses-container">
+              <!-- Filled dynamically by app.js -->
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 3: BID PRICE OPTIMIZER & REACTIVE SIMULATOR -->
+    <!-- ========================================== -->
+    <section id="tab-optimizer" class="tab-content hidden space-y-6">
+      
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Left: Reactive Controls & Cost Structure -->
+        <div class="white-card p-6 space-y-5">
+          <div class="border-b border-slate-200 pb-3">
+            <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+              <i data-lucide="sliders" class="w-5 h-5 text-emerald-600"></i>
+              <span>Reactive Parameter Controls</span>
+            </h2>
+            <p class="text-xs text-slate-500 mt-0.5">Adjust unit costs, volume, and bid price to see real-time updates</p>
+          </div>
+
+          <!-- Proposed Bid Price Slider -->
+          <div class="space-y-2 bg-emerald-50/60 p-4 rounded-xl border border-emerald-200">
+            <div class="flex justify-between items-center">
+              <label class="text-xs font-bold text-slate-800 uppercase tracking-wider">Proposed Bid Price</label>
+              <span class="font-mono font-extrabold text-xl text-emerald-700" id="opt-slider-price-disp">₹4.40</span>
+            </div>
+            <input type="range" id="opt-price-slider" min="1.0" max="15.0" step="0.05" value="4.40" oninput="handlePriceSliderChange(this.value)" class="w-full accent-emerald-600 cursor-pointer" />
+            <div class="flex justify-between text-[11px] text-slate-500 font-mono">
+              <span id="opt-slider-min-bound">₹1.00</span>
+              <button onclick="applyOptimalPriceToInput()" class="text-xs font-bold text-emerald-700 hover:underline">Jump to AI Optimum</button>
+              <span id="opt-slider-max-bound">₹15.00</span>
+            </div>
+          </div>
+
+          <!-- Unit Cost Breakdown Inputs -->
+          <div class="space-y-3 pt-2">
+            <span class="text-xs font-bold text-slate-800 uppercase tracking-wider block">Unit Cost & Financial Parameters</span>
+            
+            <div class="grid grid-cols-2 gap-3 text-xs">
+              <div>
+                <label class="text-slate-600 font-medium block mb-1">COGS / Unit</label>
+                <input type="number" id="opt-input-cogs" step="0.01" value="2.10" onchange="handleCostInputChange()" class="w-full bg-white text-slate-900 border border-slate-300 rounded-lg px-2.5 py-1.5 font-mono text-xs focus:ring-2 focus:ring-emerald-500 outline-none" />
+              </div>
+              <div>
+                <label class="text-slate-600 font-medium block mb-1">Logistics / Unit</label>
+                <input type="number" id="opt-input-logistics" step="0.01" value="0.50" onchange="handleCostInputChange()" class="w-full bg-white text-slate-900 border border-slate-300 rounded-lg px-2.5 py-1.5 font-mono text-xs focus:ring-2 focus:ring-emerald-500 outline-none" />
+              </div>
+              <div>
+                <label class="text-slate-600 font-medium block mb-1">Distribution Fee</label>
+                <input type="number" id="opt-input-distribution" step="0.01" value="0.30" onchange="handleCostInputChange()" class="w-full bg-white text-slate-900 border border-slate-300 rounded-lg px-2.5 py-1.5 font-mono text-xs focus:ring-2 focus:ring-emerald-500 outline-none" />
+              </div>
+              <div>
+                <label class="text-slate-600 font-medium block mb-1">Tender Volume</label>
+                <input type="number" id="opt-input-volume" step="1000" value="2500000" onchange="handleCostInputChange()" class="w-full bg-white text-slate-900 border border-slate-300 rounded-lg px-2.5 py-1.5 font-mono text-xs focus:ring-2 focus:ring-emerald-500 outline-none" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 text-xs pt-1">
+              <div>
+                <label class="text-slate-600 font-medium block mb-1">Price Elasticity (\(eta\))</label>
+                <input type="number" id="opt-input-elasticity" step="0.1" value="3.8" onchange="handleCostInputChange()" class="w-full bg-white text-slate-900 border border-slate-300 rounded-lg px-2.5 py-1.5 font-mono text-xs focus:ring-2 focus:ring-emerald-500 outline-none" />
+              </div>
+              <div>
+                <label class="text-slate-600 font-medium block mb-1">Target Margin %</label>
+                <input type="number" id="opt-input-target-margin" step="1" value="35" onchange="handleCostInputChange()" class="w-full bg-white text-slate-900 border border-slate-300 rounded-lg px-2.5 py-1.5 font-mono text-xs focus:ring-2 focus:ring-emerald-500 outline-none" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Total Floor Price Badge -->
+          <div class="bg-slate-100 p-3 rounded-xl border border-slate-200 flex justify-between items-center text-xs">
+            <span class="text-slate-600 font-medium">Calculated Unit Floor Cost:</span>
+            <span class="font-mono font-bold text-slate-900 text-sm" id="opt-total-cost-disp">₹2.90</span>
+          </div>
+
+        </div>
+
+        <!-- Right: Real-Time Interactive Simulation Chart -->
+        <div class="lg:col-span-2 white-card p-6 flex flex-col justify-between space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-3">
+            <div>
+              <h3 class="font-bold text-base text-slate-900 flex items-center gap-2">
+                <i data-lucide="line-chart" class="w-5 h-5 text-emerald-600"></i>
+                <span>Real-Time Win Probability vs. Profit Optimization Curve</span>
+              </h3>
+              <p class="text-xs text-slate-500 mt-0.5">Green line indicates expected gross profit; blue dashed line indicates predicted win rate.</p>
+            </div>
+          </div>
+
+          <div class="w-full h-80 sm:h-96 relative">
+            <canvas id="optimizerCurveChart"></canvas>
+          </div>
+
+          <!-- Reactive KPI Metrics Bar -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200 text-center">
+            <div>
+              <span class="text-[11px] text-slate-500 block font-medium">Selected Price</span>
+              <span class="text-base font-extrabold text-slate-900 font-mono" id="sim-kpi-price">₹4.40</span>
+            </div>
+            <div>
+              <span class="text-[11px] text-slate-500 block font-medium">Simulated Win Rate</span>
+              <span class="text-base font-extrabold text-blue-600 font-mono" id="sim-kpi-win">68.5%</span>
+            </div>
+            <div>
+              <span class="text-[11px] text-slate-500 block font-medium">Unit Margin</span>
+              <span class="text-base font-extrabold text-emerald-700 font-mono" id="sim-kpi-margin">₹1.50 (34.1%)</span>
+            </div>
+            <div>
+              <span class="text-[11px] text-slate-500 block font-medium">Expected Profit</span>
+              <span class="text-base font-extrabold text-amber-600 font-mono" id="sim-kpi-profit">₹2.57M</span>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 4: CONFIGURABLE COMPETITOR INTELLIGENCE -->
+    <!-- ========================================== -->
+    <section id="tab-competitors" class="tab-content hidden space-y-6">
+      
+      <div class="white-card p-6 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-4">
+          <div>
+            <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+              <i data-lucide="users" class="w-5 h-5 text-emerald-600"></i>
+              <span>Configurable Competitor Landscape & Pricing Matrix</span>
+            </h2>
+            <p class="text-xs text-slate-500 mt-1">
+              Model incumbent positions, estimated price bids, capacity bottlenecks, and historical aggressiveness.
+            </p>
+          </div>
+          <button onclick="addCompetitorRow()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition flex items-center gap-1.5 shadow-xs">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span>Add Competitor</span>
+          </button>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-slate-200 shadow-2xs">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 border-b border-slate-200 text-slate-700 uppercase font-semibold">
+              <tr>
+                <th class="p-3.5">Competitor / Player</th>
+                <th class="p-3.5">Estimated Bid</th>
+                <th class="p-3.5">Market Share</th>
+                <th class="p-3.5">Technical Score</th>
+                <th class="p-3.5">Aggressiveness</th>
+                <th class="p-3.5">Key Strategic Profile</th>
+                <th class="p-3.5 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="competitor-table-body" class="divide-y divide-slate-100 bg-white">
+              <!-- Filled dynamically by app.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 5: MULTI-VECTOR RISK MATRIX -->
+    <!-- ========================================== -->
+    <section id="tab-risk" class="tab-content hidden space-y-6">
+      
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Left: Radar Chart -->
+        <div class="white-card p-6 flex flex-col justify-between space-y-4">
+          <div class="border-b border-slate-200 pb-3">
+            <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+              <i data-lucide="shield-alert" class="w-5 h-5 text-amber-600"></i>
+              <span>8-Vector Risk Profile Radar</span>
+            </h2>
+            <p class="text-xs text-slate-500 mt-0.5">Comprehensive risk assessment across commercial, supply, and legal vectors.</p>
+          </div>
+
+          <div class="w-full h-72 sm:h-80 relative">
+            <canvas id="riskRadarCanvas"></canvas>
+          </div>
+
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs text-slate-600">
+            <span class="font-bold text-slate-900">Corporate Risk Ceiling:</span> Values above 60/100 trigger conditional approval reviews.
+          </div>
+        </div>
+
+        <!-- Right: Actionable Risk Mitigation Register -->
+        <div class="lg:col-span-2 white-card p-6 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+            <div>
+              <h3 class="font-bold text-base text-slate-900 flex items-center gap-2">
+                <i data-lucide="clipboard-list" class="w-5 h-5 text-emerald-600"></i>
+                <span>Actionable Risk Mitigation & Governance Register</span>
+              </h3>
+              <p class="text-xs text-slate-500 mt-0.5">Identified risk drivers and required corporate mitigations.</p>
+            </div>
+          </div>
+
+          <div class="space-y-3 max-h-[500px] overflow-y-auto pr-1" id="risk-register-container">
+            <!-- Filled dynamically by app.js -->
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 6: SCENARIO FRONTIER COMPARISON -->
+    <!-- ========================================== -->
+    <section id="tab-scenarios" class="tab-content hidden space-y-6">
+      
+      <div class="white-card p-6 space-y-4">
+        <div class="border-b border-slate-200 pb-4">
+          <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+            <i data-lucide="table" class="w-5 h-5 text-emerald-600"></i>
+            <span>Three-Tier Strategic Scenario Comparison</span>
+          </h2>
+          <p class="text-xs text-slate-500 mt-1">
+            Compare Aggressive (Win-Maximizing), Balanced (Profit-Optimizing), and Premium (Margin-Preserving) bidding postures.
+          </p>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-slate-200 shadow-2xs">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 border-b border-slate-200 text-slate-700 uppercase font-semibold">
+              <tr>
+                <th class="p-3.5">Scenario Posture</th>
+                <th class="p-3.5">Bid Price</th>
+                <th class="p-3.5">Win Prob \(P_{win}\)</th>
+                <th class="p-3.5">Gross Revenue</th>
+                <th class="p-3.5">Unit Margin</th>
+                <th class="p-3.5">Margin %</th>
+                <th class="p-3.5">Expected Profit \(\mathbb{E}[P]\)</th>
+                <th class="p-3.5">Risk Posture</th>
+              </tr>
+            </thead>
+            <tbody id="scenario-table-body" class="divide-y divide-slate-100 bg-white">
+              <!-- Filled dynamically by app.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 7: COMMERCIAL ROI CALCULATOR -->
+    <!-- ========================================== -->
+    <section id="tab-roi" class="tab-content hidden space-y-6">
+      
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- ROI Inputs -->
+        <div class="white-card p-6 space-y-4">
+          <div class="border-b border-slate-200 pb-3">
+            <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+              <i data-lucide="calculator" class="w-5 h-5 text-emerald-600"></i>
+              <span>Platform ROI Calculator</span>
+            </h2>
+            <p class="text-xs text-slate-500 mt-0.5">Quantify commercial value creation across your tender portfolio.</p>
+          </div>
+
+          <div class="space-y-3 text-xs">
+            <div>
+              <label class="text-slate-600 font-medium block mb-1">Annual Tender Portfolio Value</label>
+              <input type="number" id="roi-input-ann-val" value="250000000" onchange="calculatePlatformROI()" class="w-full bg-white text-slate-900 border border-slate-300 rounded-lg p-2 font-mono text-xs focus:ring-2 focus:ring-emerald-500 outline-none" />
+              <span class="text-[11px] text-slate-400 mt-0.5 block" id="roi-disp-ann-val">₹250,000,000</span>
+            </div>
+            <div>
+              <label class="text-slate-600 font-medium block mb-1">Baseline Historical Win Rate (%)</label>
+              <input type="number" id="roi-input-cur-win" value="38" onchange="calculatePlatformROI()" class="w-full bg-white text-slate-900 border border-slate-300 rounded-lg p-2 font-mono text-xs focus:ring-2 focus:ring-emerald-500 outline-none" />
+            </div>
+            <div>
+              <label class="text-slate-600 font-medium block mb-1">AI-Driven Win Rate Uplift (+%)</label>
+              <input type="number" id="roi-input-win-uplift" step="0.5" value="3.5" onchange="calculatePlatformROI()" class="w-full bg-white text-slate-900 border border-slate-300 rounded-lg p-2 font-mono text-xs focus:ring-2 focus:ring-emerald-500 outline-none" />
+            </div>
+            <div>
+              <label class="text-slate-600 font-medium block mb-1">Baseline Gross Margin (%)</label>
+              <input type="number" id="roi-input-cur-margin" value="32" onchange="calculatePlatformROI()" class="w-full bg-white text-slate-900 border border-slate-300 rounded-lg p-2 font-mono text-xs focus:ring-2 focus:ring-emerald-500 outline-none" />
+            </div>
+            <div>
+              <label class="text-slate-600 font-medium block mb-1">Margin Leakage Prevented (+%)</label>
+              <input type="number" id="roi-input-margin-pres" step="0.1" value="1.0" onchange="calculatePlatformROI()" class="w-full bg-white text-slate-900 border border-slate-300 rounded-lg p-2 font-mono text-xs focus:ring-2 focus:ring-emerald-500 outline-none" />
+            </div>
+            <div>
+              <label class="text-slate-600 font-medium block mb-1">Enterprise Subscription Cost / Year</label>
+              <input type="number" id="roi-input-sub-cost" value="2500000" onchange="calculatePlatformROI()" class="w-full bg-white text-slate-900 border border-slate-300 rounded-lg p-2 font-mono text-xs focus:ring-2 focus:ring-emerald-500 outline-none" />
+            </div>
+          </div>
+        </div>
+
+        <!-- ROI Output Cards -->
+        <div class="lg:col-span-2 white-card p-6 space-y-6 flex flex-col justify-between">
+          <div class="border-b border-slate-200 pb-3">
+            <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+              <i data-lucide="coins" class="w-5 h-5 text-emerald-600"></i>
+              <span>Projected Commercial Impact & Payback</span>
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">Calculated based on tender portfolio uplift and margin preservation.</p>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="p-5 rounded-2xl bg-emerald-50 border border-emerald-200">
+              <span class="text-xs font-bold text-emerald-800 uppercase tracking-wider block">New Profit from Higher Win Rate</span>
+              <span class="text-3xl font-extrabold text-emerald-700 font-mono mt-2 block" id="roi-res-new-profit">₹2.80M</span>
+              <p class="text-[11px] text-emerald-600 mt-1">From incremental bids won through predictive precision</p>
+            </div>
+
+            <div class="p-5 rounded-2xl bg-blue-50 border border-blue-200">
+              <span class="text-xs font-bold text-blue-800 uppercase tracking-wider block">Margin Leakage Saved</span>
+              <span class="text-3xl font-extrabold text-blue-700 font-mono mt-2 block" id="roi-res-leakage">₹950.0K</span>
+              <p class="text-[11px] text-blue-600 mt-1">Prevented by eliminating unnecessary discounts</p>
+            </div>
+          </div>
+
+          <div class="p-6 rounded-2xl bg-slate-900 text-white flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+              <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Total Annual Economic Value Generated</span>
+              <span class="text-4xl font-extrabold text-emerald-400 font-mono mt-1 block" id="roi-res-total-val">₹3.75M</span>
+            </div>
+            <div class="text-right">
+              <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Net ROI</span>
+              <span class="text-3xl font-black text-white font-mono" id="roi-res-pct">50%</span>
+              <span class="text-xs text-emerald-400 font-semibold block" id="roi-res-multiple">(1.5x Return)</span>
+            </div>
+          </div>
+
+          <div class="text-xs text-slate-500 bg-slate-50 p-3 rounded-xl border border-slate-200 flex items-center gap-2">
+            <i data-lucide="clock" class="w-4 h-4 text-emerald-600"></i>
+            <span>Payback Period: <strong class="text-slate-800">Under 4 months</strong> on standard tender cycle velocity.</span>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 8: COMMERCIAL NEGOTIATION WAR ROOM -->
+    <!-- ========================================== -->
+    <section id="tab-negotiation" class="tab-content hidden space-y-6">
+      
+      <div class="white-card p-6 space-y-6">
+        <div class="border-b border-slate-200 pb-4">
+          <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+            <i data-lucide="handshake" class="w-5 h-5 text-emerald-600"></i>
+            <span>Commercial Negotiation Arena & Give-Get Concession Matrix</span>
+          </h2>
+          <p class="text-xs text-slate-500 mt-1">
+            Protect margins during post-tender negotiations by trading commercial terms rather than making unilateral price cuts.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          
+          <!-- Buyer Concession Demands Checkbox List -->
+          <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
+            <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2 border-b border-slate-200 pb-2">
+              <i data-lucide="alert-circle" class="w-4 h-4 text-amber-600"></i>
+              <span>Select Buyer Negotiation Demands</span>
+            </h3>
+
+            <div class="space-y-3 text-xs">
+              <label class="flex items-start gap-3 p-3 rounded-xl bg-white border border-slate-200 cursor-pointer hover:border-emerald-500 transition">
+                <input type="checkbox" id="neg-demand-discount" onchange="evaluateNegotiationCounter()" class="mt-0.5 accent-emerald-600 rounded" />
+                <div>
+                  <strong class="text-slate-900 block font-semibold">Buyer Demands 5% Additional Cash Discount</strong>
+                  <span class="text-slate-500 text-[11px]">Procurement requests price drop to match low-tier competitor.</span>
+                </div>
+              </label>
+
+              <label class="flex items-start gap-3 p-3 rounded-xl bg-white border border-slate-200 cursor-pointer hover:border-emerald-500 transition">
+                <input type="checkbox" id="neg-demand-payment" onchange="evaluateNegotiationCounter()" class="mt-0.5 accent-emerald-600 rounded" />
+                <div>
+                  <strong class="text-slate-900 block font-semibold">Buyer Extends Payment Term to 90 Days</strong>
+                  <span class="text-slate-500 text-[11px]">Working capital impact from 30 days to 90 days delay.</span>
+                </div>
+              </label>
+
+              <label class="flex items-start gap-3 p-3 rounded-xl bg-white border border-slate-200 cursor-pointer hover:border-emerald-500 transition">
+                <input type="checkbox" id="neg-demand-volume" onchange="evaluateNegotiationCounter()" class="mt-0.5 accent-emerald-600 rounded" />
+                <div>
+                  <strong class="text-slate-900 block font-semibold">Buyer Requires 20% Unforecasted Surge Capacity</strong>
+                  <span class="text-slate-500 text-[11px]">Requires holding reserved safety inventory without binding purchase orders.</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Counter-Offer Recommendation Output -->
+          <div class="p-5 rounded-2xl bg-emerald-50/50 border border-emerald-200 space-y-4 flex flex-col justify-between">
+            <div class="space-y-3">
+              <div class="flex items-center justify-between border-b border-emerald-200/80 pb-2">
+                <h3 class="text-xs font-bold text-emerald-900 uppercase tracking-wider flex items-center gap-2">
+                  <i data-lucide="sparkles" class="w-4 h-4 text-emerald-600"></i>
+                  <span>AI Structured Counter-Proposal</span>
+                </h3>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300">Value-Preserving</span>
+              </div>
+
+              <div class="space-y-2">
+                <h4 class="text-sm font-bold text-slate-900" id="neg-counter-title">Standard Terms Protected</h4>
+                <p class="text-xs text-slate-700 leading-relaxed" id="neg-counter-body">
+                  No buyer concessions selected. Maintain quoted baseline optimal bid price.
+                </p>
+              </div>
+
+              <div class="p-3.5 rounded-xl bg-white border border-emerald-200 text-xs text-emerald-900 font-medium space-y-1 shadow-2xs" id="neg-counter-get">
+                <strong>Mandatory Get:</strong> Standard 30-day payment schedule and quarterly binding PO releases.
+              </div>
+            </div>
+
+            <!-- BATNA & Walk-away Alert -->
+            <div class="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 flex items-center gap-2.5">
+              <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-600 flex-shrink-0"></i>
+              <div>
+                <strong class="font-bold">BATNA Floor:</strong> Do not concede below unit break-even cost. Walk away if price falls below floor.
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 9: MANAGEMENT BRIEFING & PRINT DOSSIER -->
+    <!-- ========================================== -->
+    <section id="tab-report" class="tab-content hidden space-y-6">
+      
+      <div id="printable-report-section" class="white-card p-8 space-y-6 bg-white">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b-2 border-slate-900 pb-5">
+          <div>
+            <div class="flex items-center gap-2.5">
+              <h2 class="text-2xl font-extrabold text-slate-900">PharmaBid AI &bull; Executive Tender Dossier</h2>
+              <span class="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-900 text-white">Official Briefing</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-1" id="rpt-timestamp">Generated: October 2026 &bull; Governance & Pricing Audit Trail</p>
+          </div>
+          <button onclick="window.print()" class="no-print px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-2 shadow-xs transition">
+            <i data-lucide="printer" class="w-4 h-4"></i>
+            <span>Print / Save PDF</span>
+          </button>
+        </div>
+
+        <!-- Meta Summary Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+          <div>
+            <span class="text-slate-500 block font-medium">Tender Identifier:</span>
+            <strong class="text-slate-900 font-mono text-sm" id="rpt-tender-name">MOH Tender</strong>
+          </div>
+          <div>
+            <span class="text-slate-500 block font-medium">Company & BU:</span>
+            <strong class="text-slate-900 font-semibold" id="rpt-company">Global Pharma</strong> &bull; <span id="rpt-bu">Commercial</span>
+          </div>
+          <div>
+            <span class="text-slate-500 block font-medium">Market / Country:</span>
+            <strong class="text-slate-900 font-semibold" id="rpt-country">India</strong>
+          </div>
+          <div>
+            <span class="text-slate-500 block font-medium">Decision Verdict:</span>
+            <strong class="text-emerald-700 font-bold uppercase text-sm" id="rpt-decision-badge">GO</strong>
+          </div>
+        </div>
+
+        <!-- Key Financial Recommendations -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+          <div class="p-4 rounded-xl border border-slate-200 bg-white">
+            <span class="text-xs text-slate-500 block font-medium">Recommended Bid</span>
+            <span class="text-2xl font-extrabold text-slate-900 font-mono" id="rpt-rec-price">₹4.40</span>
+          </div>
+          <div class="p-4 rounded-xl border border-slate-200 bg-white">
+            <span class="text-xs text-slate-500 block font-medium">Win Probability</span>
+            <span class="text-2xl font-extrabold text-blue-600 font-mono" id="rpt-win-prob">68.5%</span>
+          </div>
+          <div class="p-4 rounded-xl border border-slate-200 bg-white">
+            <span class="text-xs text-slate-500 block font-medium">Expected Profit</span>
+            <span class="text-2xl font-extrabold text-emerald-700 font-mono" id="rpt-exp-profit">₹2.57M</span>
+          </div>
+          <div class="p-4 rounded-xl border border-slate-200 bg-white">
+            <span class="text-xs text-slate-500 block font-medium">Risk Score</span>
+            <span class="text-2xl font-extrabold text-amber-600 font-mono" id="rpt-risk-score">38 / 100</span>
+          </div>
+        </div>
+
+        <!-- Executive Narrative -->
+        <div class="space-y-2">
+          <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Executive Strategic Summary</h3>
+          <p class="text-xs text-slate-700 leading-relaxed" id="rpt-summary-text">
+            The platform evaluated 2,500,000 units of CardioShield XR for the National Health Service Central Procurement.
+          </p>
+        </div>
+
+        <!-- Parsed Clauses Review Grid -->
+        <div class="space-y-2">
+          <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Evaluated Contractual Terms & Compliance</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs" id="rpt-clauses-grid">
+            <!-- Filled dynamically -->
+          </div>
+        </div>
+
+        <div class="pt-4 border-t border-slate-200 flex justify-between items-center text-[11px] text-slate-400">
+          <span>PharmaBid AI Platform &bull; Compliance & Commercial Pricing Governance</span>
+          <span>Confidential &bull; Proprietary Enterprise Decision Intelligence</span>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ========================================== -->
+  <!-- MODAL: COMPANY & PRODUCT PROFILE SETUP -->
+  <!-- ========================================== -->
+  <div id="company-setup-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+    <div class="bg-white border border-slate-200 shadow-2xl rounded-2xl max-w-2xl w-full p-6 space-y-5 overflow-y-auto max-h-[90vh]">
+      
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-200">
+            <i data-lucide="settings-2" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900">Universal Pharma Profile Configuration</h3>
+            <p class="text-xs text-slate-500">Configure any pharmaceutical company, country, therapeutic area, or product.</p>
+          </div>
+        </div>
+        <button onclick="closeCompanyModal()" class="text-slate-400 hover:text-slate-600 p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form onsubmit="saveCompanyProfile(event)" class="space-y-4 text-xs">
+        
+        <!-- Organization & Market Info -->
+        <div class="space-y-3">
+          <span class="text-xs font-bold text-slate-800 uppercase tracking-wider block border-b border-slate-100 pb-1">1. Organization & Market</span>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="text-slate-600 font-medium block mb-1">Company Name</label>
+              <input type="text" id="cfg-company-name" required class="w-full bg-white text-slate-900 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none" />
+            </div>
+            <div>
+              <label class="text-slate-600 font-medium block mb-1">Business Unit</label>
+              <input type="text" id="cfg-business-unit" class="w-full bg-white text-slate-900 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none" />
+            </div>
+            <div>
+              <label class="text-slate-600 font-medium block mb-1">Country / Market</label>
+              <input type="text" id="cfg-country" required class="w-full bg-white text-slate-900 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Currency -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-slate-600 font-medium block mb-1">Currency Code (e.g. USD, EUR, INR, GBP, BRL)</label>
+            <input type="text" id="cfg-currency" required class="w-full bg-white text-slate-900 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none" />
+          </div>
+          <div>
+            <label class="text-slate-600 font-medium block mb-1">Currency Symbol (e.g. $, €, ₹, £, R$)</label>
+            <input type="text" id="cfg-currency-symbol" required class="w-full bg-white text-slate-900 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none" />
+          </div>
+        </div>
+
+        <!-- Product & Clinical Info -->
+        <div class="space-y-3 pt-2">
+          <span class="text-xs font-bold text-slate-800 uppercase tracking-wider block border-b border-slate-100 pb-1">2. Therapeutic Area & Molecule</span>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="text-slate-600 font-medium block mb-1">Therapeutic Area</label>
+              <input type="text" id="cfg-therapeutic-area" required class="w-full bg-white text-slate-900 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none" />
+            </div>
+            <div>
+              <label class="text-slate-600 font-medium block mb-1">Product Brand Name</label>
+              <input type="text" id="cfg-product-brand" required class="w-full bg-white text-slate-900 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none" />
+            </div>
+            <div>
+              <label class="text-slate-600 font-medium block mb-1">Active Molecule / Formulation</label>
+              <input type="text" id="cfg-molecule" required class="w-full bg-white text-slate-900 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Tender Specifics -->
+        <div class="space-y-3 pt-2">
+          <span class="text-xs font-bold text-slate-800 uppercase tracking-wider block border-b border-slate-100 pb-1">3. Tender RFP Specifications</span>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="text-slate-600 font-medium block mb-1">Tender Name</label>
+              <input type="text" id="cfg-tender-name" required class="w-full bg-white text-slate-900 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none" />
+            </div>
+            <div>
+              <label class="text-slate-600 font-medium block mb-1">Tender ID / RFP Number</label>
+              <input type="text" id="cfg-tender-id" required class="w-full bg-white text-slate-900 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none" />
+            </div>
+            <div>
+              <label class="text-slate-600 font-medium block mb-1">Submission Deadline</label>
+              <input type="date" id="cfg-tender-deadline" class="w-full bg-white text-slate-900 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none" />
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-4 border-t border-slate-200 flex justify-end gap-3">
+          <button type="button" onclick="closeCompanyModal()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition">
+            Cancel
+          </button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition shadow-xs">
+            Apply Profile & Re-simulate
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- LOAD APPLICATION SCRIPTS -->
+  <script src="demo-data.js"></script>
+  <script src="engine.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
