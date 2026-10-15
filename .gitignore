@@ -1,0 +1,42 @@
+# Environments & Dependencies
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Secrets & Local Configurations
+.env
+.secret_key
+backend/data/.secret_key
+
+# Temporary files & archives
+*.zip
+*.tar.gz
+*.log
+scratch/
+test_*.py
+
+# System & IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

@@ -555,25 +555,56 @@ function applyOptimalPriceToInput() {
   refreshAllUI();
 }
 
-function handleFileUpload(event) {
+async function handleFileUpload(event) {
   const file = event.target.files[0];
   if (!file) return;
 
-  alert(`Document Ingested: "${file.name}" (${(file.size / 1024).toFixed(1)} KB). AI extraction engine parsed clauses and updated scoring formula.`);
-  
-  // Add a sample parsed clause
-  const curClauses = window.PharmaBidEngine.getState().extractedClauses || [];
-  curClauses.push({
-    id: 'cl-upload-' + Date.now(),
-    section: 'Uploaded Extract',
-    title: `Analyzed from: ${file.name}`,
-    text: `Tender terms parsed: Standard fulfillment terms with 10% performance bond and 30-day payment term.`,
-    risk: 'LOW',
-    category: 'Ingested File'
-  });
+  const currentTenderId = (activeTenderState && activeTenderState.id) || 'tnd-cppp-2026-01';
+  const token = localStorage.getItem('pharmabid_token');
+  const headers = {};
+  if (token) headers['Authorization'] = `Bearer ${token}`;
 
-  window.PharmaBidEngine.updateState({ extractedClauses: curClauses });
-  refreshAllUI();
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('doc_type', 'NIT');
+
+  try {
+    const resp = await fetch(`/api/tenders/${encodeURIComponent(currentTenderId)}/upload-document`, {
+      method: 'POST',
+      headers: headers,
+      body: formData
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      if (resp.status === 401) {
+        alert('Authentication required: Please log in using the top-right button before uploading tender documents.');
+        openLoginModal();
+        return;
+      }
+      throw new Error(err.detail || 'Upload failed');
+    }
+
+    const data = await resp.json();
+    alert(`Document Ingested & Analyzed: "${data.file_name}"\nSHA-256: ${data.sha256.substring(0, 16)}...\nExtracted ${data.clauses_extracted} genuine clauses across ${data.page_count} pages.`);
+
+    // Convert API clauses to UI format and merge
+    const newClauses = (data.clauses || []).map(cl => ({
+      id: cl.id,
+      section: `Page ${cl.page_number} Citation`,
+      title: cl.clause_title,
+      text: cl.extracted_text,
+      risk: cl.risk_level,
+      category: cl.category
+    }));
+
+    const curClauses = window.PharmaBidEngine.getState().extractedClauses || [];
+    window.PharmaBidEngine.updateState({ extractedClauses: [...newClauses, ...curClauses] });
+    refreshAllUI();
+  } catch (e) {
+    console.error('API Upload error:', e);
+    alert('API Upload error: ' + e.message);
+  }
 }
 
 function syncExtractedWeightsToOptimizer() {
@@ -702,6 +733,8 @@ function switchTab(tabId) {
     setTimeout(() => updateOptimizerChart(res, sym), 50);
   } else if (tabId === 'tab-risk') {
     setTimeout(() => updateRiskRadarChart(res.normalizedCategoryScores), 50);
+  } else if (tabId === 'tab-history') {
+    setTimeout(() => loadAuditHistory(), 50);
   }
 
   lucide.createIcons();
@@ -753,12 +786,309 @@ function saveCompanyProfile(event) {
   refreshAllUI();
 }
 
-// Utility Helper
-function formatCompactNumber(num) {
-  if (num === null || num === undefined) return '0';
-  const n = Math.abs(num);
-  if (n >= 10000000) return (num / 10000000).toFixed(2) + ' Cr';
-  if (n >= 1000000) return (num / 1000000).toFixed(2) + 'M';
-  if (n >= 1000) return (num / 1000).toFixed(1) + 'K';
-  return num.toFixed(2);
+// 10. ENTERPRISE BACKEND API INTEGRATIONS
+async function handleApiLogin(event) {
+  event.preventDefault();
+  const email = document.getElementById('login-email').value;
+  const password = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error-msg');
+  errEl.classList.add('hidden');
+
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.detail || 'Authentication failed');
+    }
+
+    const data = await res.json();
+    localStorage.setItem('pharmabid_token', data.access_token);
+    localStorage.setItem('pharmabid_user', JSON.stringify(data.user));
+
+    updateAuthUserUI(data.user);
+    closeLoginModal();
+    alert(`Signed in successfully as ${data.user.name} (${data.user.role})`);
+    fetchTendersFromBackend();
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.classList.remove('hidden');
+  }
 }
+
+function updateAuthUserUI(user) {
+  if (!user) return;
+  const nameEl = document.getElementById('auth-user-name');
+  const roleEl = document.getElementById('auth-user-role');
+  if (nameEl) nameEl.textContent = user.name;
+  if (roleEl) roleEl.textContent = `${user.role} (${user.organization_id})`;
+}
+
+function openLoginModal() {
+  const modal = document.getElementById('login-modal');
+  if (modal) modal.classList.remove('hidden');
+}
+
+function closeLoginModal() {
+  const modal = document.getElementById('login-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function fillLoginForm(email, password) {
+  document.getElementById('login-email').value = email;
+  document.getElementById('login-password').value = password;
+}
+
+async function fetchTendersFromBackend() {
+  const token = localStorage.getItem('pharmabid_token');
+  const headers = {};
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  try {
+    const res = await fetch('/api/tenders', { headers });
+    if (!res.ok) {
+      if (res.status === 401) {
+        console.warn('Authentication needed for live tender query');
+        return;
+      }
+      throw new Error('Failed to fetch tenders from backend database');
+    }
+    const data = await res.json();
+    if (data.tenders && data.tenders.length > 0) {
+      console.log(`Synchronized ${data.tenders.length} tenders from database`);
+      // Update first tender if current matches
+      const t = data.tenders[0];
+      const tag = document.getElementById('header-demo-tag');
+      if (tag) {
+        tag.textContent = `LIVE DATABASE SYNC: ${t.portal_source} [${t.data_mode}]`;
+        tag.className = 'hidden md:inline text-[11px] uppercase font-semibold px-2.5 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-300';
+      }
+    }
+  } catch (e) {
+    console.error('Tender fetch error:', e);
+  }
+}
+
+async function submitBidEvaluationToBackend() {
+  const token = localStorage.getItem('pharmabid_token');
+  if (!token) {
+    alert('Authentication required: Please sign in via the top-right button to perform authenticated bid evaluations.');
+    openLoginModal();
+    return;
+  }
+
+  const s = window.PharmaBidEngine.getState();
+  const currentTenderId = s.id || 'tnd-cppp-2026-01';
+
+  try {
+    const res = await fetch('/api/bids/evaluate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        tender_id: currentTenderId,
+        proposed_bid_price: s.proposedBidPrice,
+        volume: s.volume,
+        direct_cogs: s.cogs,
+        qc_packaging_cost: 0.25,
+        logistics_cost: s.logisticsCost,
+        distribution_fee: s.distributionCost,
+        financing_rate_pct: 8.5,
+        target_margin_pct: s.targetMarginPct
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || 'Evaluation failed');
+    }
+
+    const data = await res.json();
+    const econ = data.bid_economics;
+
+    // Display calibrated uncertainty & decision
+    alert(`Backend API Bid Evaluation Result:\n\nDecision: ${econ.decision}\nRationale: ${econ.decision_rationale}\n\nCalibrated P(Win): ${econ.win_probability}% [Range: ${econ.win_prob_lower}% - ${econ.win_prob_upper}%]\nStatus: ${econ.win_prob_label}\nUnit Margin: ₹${econ.unit_margin} (${econ.margin_pct}%)\nExpected Profit: ₹${formatCompactNumber(econ.expected_profit)}\nBreak-Even Floor: ₹${econ.break_even_price}`);
+
+    const rangeEl = document.getElementById('dash-win-prob-range');
+    if (rangeEl) rangeEl.textContent = `[${econ.win_prob_lower}% - ${econ.win_prob_upper}%]`;
+
+    const verdictEl = document.getElementById('dash-decision-verdict');
+    if (verdictEl) verdictEl.textContent = econ.decision;
+
+    // Refresh audit history to reflect new evaluation
+    loadAuditHistory();
+
+  } catch (e) {
+    console.error('Bid evaluation API error:', e);
+    alert('Evaluation Error: ' + e.message);
+  }
+}
+
+async function submitBidApprovalToBackend() {
+  const token = localStorage.getItem('pharmabid_token');
+  if (!token) {
+    alert('Authentication required: Sign in with Tender Director or Finance Reviewer privileges to execute sign-off.');
+    openLoginModal();
+    return;
+  }
+
+  const s = window.PharmaBidEngine.getState();
+  const currentTenderId = s.id || 'tnd-cppp-2026-01';
+  const notes = prompt('Enter Governance Audit Sign-Off Notes (e.g., Reviewed against CMSS Rate Contract & Batch Capacities):', 'Reviewed and approved for official portal submission under commercial policy.');
+  if (notes === null) return;
+
+  try {
+    const res = await fetch('/api/bids/approve', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        tender_id: currentTenderId,
+        decision_verdict: 'APPROVED',
+        notes: notes
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || 'Sign-off approval failed');
+    }
+
+    const data = await res.json();
+    alert(`Bid Officially Signed Off!\n\nApproved By: ${data.approved_by} (${data.role})\nTimestamp: ${data.timestamp}\nStatus: Audited & Registered in Database`);
+    
+    // Refresh audit history to reflect approval
+    loadAuditHistory();
+  } catch (e) {
+    console.error('Approval API error:', e);
+    alert('Governance Approval Error: ' + e.message);
+  }
+}
+
+// Auto-check stored token on load
+window.addEventListener('DOMContentLoaded', () => {
+  const storedUser = localStorage.getItem('pharmabid_user');
+  if (storedUser) {
+    try {
+      updateAuthUserUI(JSON.parse(storedUser));
+    } catch (e) {}
+  }
+  // Auto-load audit history in background
+  loadAuditHistory();
+});
+
+// 12. WORKING HISTORY & AUDIT TRAIL LOG VIEWER
+async function loadAuditHistory() {
+  const tbody = document.getElementById('audit-history-tbody');
+  const badge = document.getElementById('audit-log-count-badge');
+  if (!tbody) return;
+
+  const token = localStorage.getItem('pharmabid_token');
+  if (!token) {
+    // If not logged in yet, try default admin/manager login or show notice
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" class="py-4 text-center text-slate-500">
+          Sign in required to view secure organization audit trail. Click the shield icon in top navigation.
+        </td>
+      </tr>
+    `;
+    if (badge) badge.textContent = 'Auth Required';
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/audit-logs?limit=50', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (!res.ok) {
+      if (res.status === 401) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="py-4 text-center text-rose-500">
+              Session expired. Please log in again to view organization audit logs.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+      throw new Error(`HTTP error ${res.status}`);
+    }
+
+    const data = await res.json();
+    const logs = data.logs || [];
+
+    if (badge) badge.textContent = `${logs.length} Recorded Events`;
+
+    if (logs.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" class="py-6 text-center text-slate-400">
+            No audit records found for this organization yet.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tbody.innerHTML = logs.map(l => {
+      let metaStr = '-';
+      if (l.details) {
+        if (typeof l.details === 'object') {
+          metaStr = Object.entries(l.details)
+            .map(([k, v]) => `<span class="text-slate-500">${k}:</span> <strong class="text-slate-800">${typeof v === 'object' ? JSON.stringify(v) : v}</strong>`)
+            .join(' &bull; ');
+        } else {
+          metaStr = String(l.details);
+        }
+      }
+
+      let actionBadge = 'bg-slate-100 text-slate-700';
+      if (l.action === 'IMPORT_TENDER') actionBadge = 'bg-blue-100 text-blue-800';
+      else if (l.action === 'ANALYZE_DOCUMENT') actionBadge = 'bg-purple-100 text-purple-800';
+      else if (l.action === 'EVALUATE_BID') actionBadge = 'bg-amber-100 text-amber-800';
+      else if (l.action === 'APPROVE_BID') actionBadge = 'bg-emerald-100 text-emerald-800';
+      else if (l.action === 'USER_LOGIN') actionBadge = 'bg-indigo-100 text-indigo-800';
+
+      const d = new Date(l.timestamp);
+      const formattedDate = isNaN(d.getTime()) ? l.timestamp : d.toLocaleString();
+
+      return `
+        <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+          <td class="py-2.5 px-3 font-mono text-[11px] text-slate-500 whitespace-nowrap">${formattedDate}</td>
+          <td class="py-2.5 px-3">
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${actionBadge}">${l.action}</span>
+          </td>
+          <td class="py-2.5 px-3 text-slate-600 font-semibold">${l.entity_type || '-'}</td>
+          <td class="py-2.5 px-3 font-mono text-slate-800 text-[11px]">${l.entity_id || '-'}</td>
+          <td class="py-2.5 px-3 text-slate-600">${l.user_email || 'System'}</td>
+          <td class="py-2.5 px-3 text-[11px] text-slate-600 max-w-md truncate" title="${metaStr.replace(/<[^>]*>?/gm, '')}">
+            ${metaStr}
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    lucide.createIcons();
+
+  } catch (e) {
+    console.error('Failed to fetch audit logs:', e);
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" class="py-4 text-center text-rose-500">
+          Error loading audit logs: ${e.message}
+        </td>
+      </tr>
+    `;
+  }
+}
+
