@@ -4,7 +4,10 @@ import re
 import hashlib
 from typing import Dict, Any, List, Optional
 import pypdf
-import fitz # PyMuPDF
+try:
+    import pymupdf
+except ImportError:
+    import fitz as pymupdf
 
 class DocumentExtractor:
     """
@@ -27,7 +30,7 @@ class DocumentExtractor:
         """
         pages = []
         try:
-            doc = fitz.open(filepath)
+            doc = pymupdf.open(filepath)
             for page_num in range(len(doc)):
                 page = doc[page_num]
                 text = page.get_text("text")
